@@ -8,14 +8,14 @@
 
         $id = $_POST['id'];
 
-        $updateQuery = "UPDATE borrowing_acts SET status = '1' WHERE id = $id";
+        $updateQuery = "UPDATE borrowing_acts SET lost = '1' WHERE id = $id";
         mysqli_query($connect, $updateQuery);
 
         if ($connect->query($updateQuery) === TRUE) {
         echo "Value inserted successfully!";
+        copy_record($connect);
         } else {
             echo "Error inserting value: " . $connect->error;
         }
         $connect->close();
     }
-

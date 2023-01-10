@@ -2,6 +2,7 @@
     session_start();
     include_once("db_connect.php");
     include_once("php_functions.php");
+    $userdata = check_login($connect);
     
     if (!isset($_SESSION['logged_in']) || !$_SESSION['logged_in']) {
     // Redirect the user to the login page
@@ -28,6 +29,16 @@
         <div class="qlinks"><a href="dashboard.php">Dashboard</a></div>
         <div class="qlinks"><a href="current.php">Currently Borrowed</a></div>
         <div class="qlinks"><a href="studList.php">Student List</a></div>
+        <div class="qlinks"><a href="renewal.php">Renewal Request</a></div>
+         <?php 
+            $adminChck = "Admin";
+            if ($userdata['position'] == $adminChck){
+                echo '<div class="qlinks"><a id="userAccs" href="#">User Accounts</a></div>
+                        <div class="subdivs" id="stud"><a id= "studentaccounts" href="studAccs.php">Student Accounts</a></div>
+                        <div class="subdivs" id="lib"><a id="libaccounts" href="libAccs.php">Librarian Accounts</a></div>';
+            }
+        ?>
+        <button type="button" id="logout" onclick="location.href='logout.php'">Logout</button>
         
     </div>
     <div id="header">
@@ -40,16 +51,17 @@
          $tbData = "SELECT * FROM violators WHERE  Returned = 0;";
          $result = $connect->query($tbData);
      
-         echo "<div id='dataTbl'><table id='table' cellspacing='20'>";
-         echo "<tr> 
+         echo "<div id='dataTbl'><table id='table'>";
+         echo "<thead><tr> 
                 <th>Student Number</th>
                <th>First Name</th>
                <th>Last Name</th>
                <th>Book Title</th>
                <th>Date Borrowed</th>
                <th>Return Date</th>
+               <th>Violation Type</th>
                <th>Returned</th>
-               </tr>";
+               </thead></tr>";
      
          while ($row = $result->fetch_assoc()) {
              echo "<tr id=" . $row["id"].">";
@@ -59,6 +71,11 @@
              echo "<td>" . $row["Book_title"] . "</td>";
              echo "<td>" . $row["Date_borrowed"] . "</td>";
              echo "<td>" . $row["Return_date"] . "</td>";
+             if ($row["Lost"] == 1) {
+                echo "<td>Damaged/Lost</td>";
+            } else {
+                echo "<td>Late Return</td>";
+            }
              echo "<td>
              <input type='checkbox' name='returned' value=".$row['id']." class='checkboxValue'>
              <button name='submit'  id=".$row['id'].">Submit</button>
@@ -126,19 +143,10 @@
                     },
                     dataType: "json",
                     success: function(response){
-                        console.log(response);
-                        console.log(response[0].stud_num);
-    console.log(response.field2);
                         let modal = document.getElementById("myPopUp");
                         modal.style.display = "block";
-                        // for (const key in response) {
-                        //     const element = "<td>${key}:${response[key]}</td>"; 
-                        //     $("#container").append(element);
-
-                        // }
                         
                         for (var element in response[0]) {
-                        // $("#container").append("<td></td>");
                         $("#container").append("<td>"+response[0][element]+"</td>");
                          }
                         let close = document.getElementById("closeBtn")
@@ -148,12 +156,10 @@
                         modalClose.style.display = "none"
                         })
                     },
-                    // error: function(response){
-                    //     console.log(response)
-                    // }
                 })
             })
         })
     </script>
+    <script src="script.js"></script>
 </body>
 </html>

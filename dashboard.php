@@ -3,15 +3,11 @@
     include_once("db_connect.php");
     include_once("php_functions.php");
     copy_record($connect);
-
+    $userdata = check_login($connect);
     if (!isset($_SESSION['logged_in']) || !$_SESSION['logged_in']) {
-    // Redirect the user to the login page
     header('Location: login.php');
     exit;
     }
-    //for logout soon
-    //unset($_SESSION['logged_in']);
-
     
     if($_SERVER['REQUEST_METHOD'] == "POST")
 	{
@@ -57,6 +53,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
     <link rel="stylesheet" href="dashStyle.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.2/jquery.min.js"></script>
 </head>
 <body>
     <div class="sidebar">
@@ -65,6 +62,16 @@
         <div class="qlinks"><a href="current.php">Currently Borrowed</a></div>
         <div class="qlinks"><a href="studList.php">Student List</a></div>
         <div class="qlinks"><a href="violators.php">Violators List</a></div>
+        <div class="qlinks"><a href="renewal.php">Renewal Request</a></div>
+        <?php 
+            $adminChck = "Admin";
+            if ($userdata['position'] == $adminChck){
+                echo '<div class="qlinks"><a id="userAccs" href="#">User Accounts</a></div>
+                        <div class="subdivs" id="stud"><a id= "studentaccounts" href="studAccs.php">Student Accounts</a></div>
+                        <div class="subdivs" id="lib"><a id="libaccounts" href="libAccs.php">Librarian Accounts</a></div>';
+            }
+        ?>
+        <button type="button" id="logout" onclick="location.href='logout.php'">Logout</button>
     </div>
     <div id="header">
             
@@ -74,7 +81,7 @@
     <div class="mainScrn">
         <?php
             $current_date = date('Y-m-d');
-            $dateCheck = "SELECT * FROM borrowing_acts WHERE return_date = '$current_date' && returned = 0";
+            $dateCheck = "SELECT * FROM borrowing_acts WHERE return_date = '$current_date' && status = 0";
             $dateResult = mysqli_query($connect, $dateCheck);
             if (mysqli_num_rows($dateResult) > 0) {
                 echo '<div id="notifParent"><p id="notifModal">There are books due today!
@@ -91,15 +98,15 @@
                 $Bdata = "SELECT * FROM `borrowing_acts` WHERE DATE(date_borrowed) = CURDATE();";
                 $tbResult = $connect->query($Bdata);
 
-                echo "<div id='bDataTbl'><table cellspacing='20'>";
-                echo "<tr>
+                echo "<div id='bDataTbl'><table cellspacing='10'>";
+                echo "<thead><tr>
                <th>Student Number</th>
                <th>First Name</th>
                <th>Last Name</th>
                <th>Book Title</th>
                <th>Date/Time Borrowed</th>
                <th>Return Date</th>
-               </tr>";
+               </thead></tr>";
 
                while ($row = $tbResult->fetch_assoc()) {
                 echo "<tr id=" . $row["id"].">";
@@ -134,7 +141,7 @@
                     <input type="text" id="borrowerFname"  name="fname" required="">
                     <input type="text" id="borrowerLname"  name="lname" required="">
                     <input type="text" id="bookName"  name="Bname" required="">
-                    <input type="text" id="returnDate"  name="Rdate" required="">
+                    <input type="date" id="returnDate"  name="Rdate" required="">
                 </div>
                 <button type="submit" id="submit">OK</button>
             </form>

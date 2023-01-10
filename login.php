@@ -5,6 +5,11 @@ session_start();
 	include_once("db_connect.php");
 	include_once("php_functions.php");
 
+	if (isset($_SESSION['logged_in']) && $_SESSION['logged_in']) {
+    header('Location: dashboard.php');
+    exit;
+    }
+
 
 	if($_SERVER['REQUEST_METHOD'] == "POST")
 	{
@@ -26,7 +31,7 @@ session_start();
 
 					$user_data = mysqli_fetch_assoc($result);
 					
-					if($user_data['password'] === $password && $user_data['position'] === 'Librarian')
+					if(($user_data['password'] === $password && $user_data['position'] === 'Librarian') || ($user_data['password'] === $password && $user_data['position'] === 'Admin') )
 					{
 
 						$_SESSION['userid'] = $user_data['userid'];
